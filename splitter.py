@@ -17,13 +17,27 @@ def on_message(bus, message, udata):
 
     return True
 
-def on_autoplug_continue(element, pad, caps, udata):
-    #FIXME this is hardcoded for h264
-    video_caps = Gst.Caps.from_string('video/x-h264, parsed=(boolean)true')
+def on_autoplug_factories(element, pad, caps, udata):
+    factories = Gst.ElementFactory.list_get_elements(Gst.ELEMENT_FACTORY_TYPE_DEMUXER | Gst.ELEMENT_FACTORY_TYPE_PARSER, Gst.Rank.MARGINAL)
+    factories = Gst.ElementFactory.list_filter(factories, caps, Gst.PadDirection.SINK, caps.is_fixed())
 
-    if caps.can_intersect(video_caps):
-        return False
+    if len(factories) == 0:
+        #TODO check if this is indeed a parsed type and not some unhandled format (missing elements)
+        return None
+
+    return factories
+
+def on_autoplug_continue(element, pad, caps, udata):
+    s = caps.get_structure(0)
+    if s.has_field('parsed'):
+        if s.get_value('parsed') == True:
+            return False
+    if s.has_field('framed'):
+        if s.get_value('framed') == True:
+            return False
+
     return True
+
 
 def on_pad_added(element, pad, udata):
     pipeline, splitmuxsink = udata
@@ -46,6 +60,7 @@ def split(input_uri, output_dir):
     pipeline.add(splitmuxsink)
 
     uridecodebin.set_property('uri', input_uri)
+    uridecodebin.connect('autoplug-factories', on_autoplug_factories, None)
     uridecodebin.connect('autoplug-continue', on_autoplug_continue, None)
     uridecodebin.connect('pad-added', on_pad_added, (pipeline, splitmuxsink))
 
