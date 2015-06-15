@@ -38,12 +38,32 @@ def on_autoplug_continue(element, pad, caps, udata):
 
     return True
 
+def caps_is_video(caps):
+    s = caps.get_structure(0)
+    return s.get_name().startswith('video/')
+def caps_is_audio(caps):
+    s = caps.get_structure(0)
+    return s.get_name().startswith('audio/')
 
 def on_pad_added(element, pad, udata):
     pipeline, splitmuxsink = udata
-    #TODO we are only linking video here
-    if pad.get_current_caps().get_structure(0).get_name().startswith('video/'):
-        other_pad = splitmuxsink.get_compatible_pad (pad, None)
+    other_pad = None
+
+    # Can't use 'get_compatible_pad' because splitmuxsink pad templates
+    # are all ANY so it will always match the first
+    if caps_is_video(pad.get_current_caps()):
+        klass = type(splitmuxsink)
+        tmpl = klass.get_pad_template('video')
+        other_pad = splitmuxsink.request_pad(tmpl, None, None)
+    elif caps_is_audio(pad.get_current_caps()):
+        klass = type(splitmuxsink)
+        tmpl = klass.get_pad_template('audio_%u')
+        other_pad = splitmuxsink.request_pad(tmpl, None, None)
+    else:
+        caps = pad.get_current_caps()
+        print 'leaving pad %s unlinked - "%s"' % (pad.get_name(), caps.to_string() if caps else 'no caps')
+
+    if other_pad:
         queue = Gst.ElementFactory.make('queue')
         pipeline.add(queue)
         queue.sync_state_with_parent()
