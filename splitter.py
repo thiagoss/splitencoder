@@ -85,7 +85,7 @@ def split(input_uri, output_dir):
     uridecodebin.connect('pad-added', on_pad_added, (pipeline, splitmuxsink))
 
     # TODO fix mp4mux to properly segment files
-    splitmuxsink.set_property('muxer', Gst.ElementFactory.make('matroska'))
+    splitmuxsink.set_property('muxer', Gst.ElementFactory.make('matroskamux'))
     splitmuxsink.set_property('location', output_dir + '/' + 'segment_%09d.mkv')
     splitmuxsink.set_property('max-size-time', 10000000000) #10s segments
 
