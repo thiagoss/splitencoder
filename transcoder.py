@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+#
 # splitencoder
 #
 # Copyright (C) 2015 Samsung Electronics. All rights reserved.
