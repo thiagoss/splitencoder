@@ -22,11 +22,16 @@
 #
 
 import sys
+import os
 
 import gi
 gi.require_version('Gst', '1.0')
 gi.require_version('GstPbutils', '1.0')
 from gi.repository import GObject, Gst, GstPbutils
+
+def ensure_directory(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 def on_message(bus, message, udata):
     pipeline, loop = udata
@@ -109,6 +114,8 @@ if __name__ == '__main__':
     input_file = sys.argv[1]
     output_file = sys.argv[2]
     #TODO validate args
+
+    ensure_directory(os.path.dirname(output_file))
 
     profile = create_encoding_profile()
 
