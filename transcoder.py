@@ -30,6 +30,7 @@ gi.require_version('GstPbutils', '1.0')
 from gi.repository import GObject, Gst, GstPbutils
 
 def ensure_directory(directory):
+    if not directory: return
     if not os.path.exists(directory):
         os.makedirs(directory)
 
