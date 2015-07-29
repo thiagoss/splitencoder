@@ -2,9 +2,9 @@
 
 # Transcodes a media file remotely using parallel
 
-if [ "$#" -ne 3 ]; then
+if [ "$#" -ne 4 ]; then
     echo "Illegal number of parameters"
-    echo "parallel-splitencoder.sh <input_uri> <split_directory> <output_file>"
+    echo "parallel-splitencoder.sh <input_uri> <split_directory> <transcoded_directory> <output_file>"
     exit 1
 fi
 
@@ -12,7 +12,7 @@ fi
 python splitter.py $1 $2
 
 # 2. Transcode
-parallel --no-notice --sshloginfile nodefile --transfer "transcoder.py {} $3/out_{}" ::: `find $2 -type f`
+parallel --no-notice --sshloginfile nodefile --transfer --return $3/{} "transcoder.py {} $3/{}" ::: `find $2 -type f`
 
 # 3. Merge
-# TODO
+python merger.py "$3/$2/segment_*" $4
