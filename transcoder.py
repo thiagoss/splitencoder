@@ -70,7 +70,7 @@ def on_pad_added(element, pad, udata):
         queue = Gst.ElementFactory.make('queue')
         queue.set_property('max-size-buffers', 0)
         queue.set_property('max-size-time', 0)
-        queue.set_property('max-size-bytes', 0)
+        queue.set_property('max-size-bytes', 1000000000)
         pipeline.add(queue)
         queue.sync_state_with_parent()
         pad.link(queue.get_static_pad('sink'))
