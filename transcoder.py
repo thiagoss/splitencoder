@@ -115,6 +115,8 @@ if __name__ == '__main__':
     output_file = sys.argv[2]
     #TODO validate args
 
+    if not Gst.uri_is_valid (input_file):
+        input_file = Gst.filename_to_uri (input_file)
     ensure_directory(os.path.dirname(output_file))
 
     profile = create_encoding_profile()
