@@ -29,6 +29,8 @@ gi.require_version('Gst', '1.0')
 gi.require_version('GstPbutils', '1.0')
 from gi.repository import GObject, Gst, GstPbutils
 
+from splitencoder import utils
+
 def ensure_directory(directory):
     if not directory: return
     if not os.path.exists(directory):
@@ -47,19 +49,12 @@ def on_message(bus, message, udata):
 
     return True
 
-def caps_is_video(caps):
-    s = caps.get_structure(0)
-    return s.get_name().startswith('video/')
-def caps_is_audio(caps):
-    s = caps.get_structure(0)
-    return s.get_name().startswith('audio/')
-
 def on_pad_added(element, pad, udata):
     pipeline, muxer = udata
     caps = pad.get_current_caps()
-    if caps_is_video(caps):
+    if utils.caps_is_video(caps):
         reqname = 'video_%u'
-    elif caps_is_audio(caps):
+    elif utils.caps_is_audio(caps):
         reqname = 'audio_%u'
     else:
         print 'Ignoring pad of caps:', caps.to_string()

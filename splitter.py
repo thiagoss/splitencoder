@@ -27,6 +27,8 @@ import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import GObject, Gst
 
+from splitencoder import utils
+
 def on_message(bus, message, udata):
     pipeline, loop = udata
 
@@ -61,24 +63,17 @@ def on_autoplug_continue(element, pad, caps, udata):
 
     return True
 
-def caps_is_video(caps):
-    s = caps.get_structure(0)
-    return s.get_name().startswith('video/')
-def caps_is_audio(caps):
-    s = caps.get_structure(0)
-    return s.get_name().startswith('audio/')
-
 def on_pad_added(element, pad, udata):
     pipeline, splitmuxsink = udata
     other_pad = None
 
     # Can't use 'get_compatible_pad' because splitmuxsink pad templates
     # are all ANY so it will always match the first
-    if caps_is_video(pad.get_current_caps()):
+    if utils.caps_is_video(pad.get_current_caps()):
         klass = type(splitmuxsink)
         tmpl = klass.get_pad_template('video')
         other_pad = splitmuxsink.request_pad(tmpl, None, None)
-    elif caps_is_audio(pad.get_current_caps()):
+    elif utils.caps_is_audio(pad.get_current_caps()):
         klass = type(splitmuxsink)
         tmpl = klass.get_pad_template('audio_%u')
         other_pad = splitmuxsink.request_pad(tmpl, None, None)
