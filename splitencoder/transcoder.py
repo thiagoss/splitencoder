@@ -29,7 +29,7 @@ gi.require_version('Gst', '1.0')
 gi.require_version('GstPbutils', '1.0')
 from gi.repository import GObject, Gst, GstPbutils
 
-from splitencoder import utils
+import utils
 
 def ensure_directory(directory):
     if not directory: return

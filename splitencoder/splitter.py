@@ -27,7 +27,7 @@ import gi
 gi.require_version('Gst', '1.0')
 from gi.repository import GObject, Gst
 
-from splitencoder import utils
+import utils
 
 def on_message(bus, message, udata):
     pipeline, loop = udata
