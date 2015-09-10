@@ -10,12 +10,12 @@ fi
 
 # 1. Split
 echo "Splitting"
-python splitter.py $1 $2
+python splitencoder/splitter.py $1 $2
 
 # 2. Transcode
 echo "Transcoding"
-parallel --no-notice --sshloginfile nodefile --transfer --return $3/{} "transcoder.py {} $3/{}" ::: `find $2 -type f`
+parallel --no-notice --sshloginfile nodefile --transfer --return $3/{} "splitencoder/transcoder.py {} $3/{}" ::: `find $2 -type f`
 
 # 3. Merge
 echo "Merging"
-python merger.py "$3/$2/segment_*" $4
+python splitencoder/merger.py "$3/$2/segment_*" $4
