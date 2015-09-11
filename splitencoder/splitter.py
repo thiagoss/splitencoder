@@ -89,6 +89,7 @@ def on_pad_added(element, pad, udata):
         queue.get_static_pad('src').link(other_pad)
 
 def split(input_uri, output_dir):
+    Gst.init()
     loop = GObject.MainLoop()
 
     pipeline = Gst.Pipeline()
