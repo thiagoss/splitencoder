@@ -1,7 +1,11 @@
 import os
+import shutil
+import sys
 import uuid
 
 from mrjob.job import MRJob
+from splitencoder.transcoder import transcode
+from splitencoder.merger import merge
 
 
 class SplitencoderJob(MRJob):
@@ -15,28 +19,34 @@ class SplitencoderJob(MRJob):
     def load_options(self, args):
         super(SplitencoderJob, self).load_options(args)
         self.files_root = self.options.files_root
+        self.output_file = sys.argv[-1]
+        self.output_extension = os.path.splitext(self.output_file)[1]
 
-    def _fetch_file(self, filename):
-        with open(os.path.join(self.files_root, filename), 'r') as f:
-            return f.read()
+    def _get_key(self, filename):
+        return os.path.split(filename)[0]
 
     def _transcode(self, chunk):
-        return ''.join(str(ord(ch)) for ch in chunk)
-
-    def _transfer_transcoded_file(self, transcoded_chunk):
-        filename = uuid.uuid4().hex
-        with open(os.path.join(self.files_root, filename), 'w') as t_file:
-            t_file.write(transcoded_chunk)
-        return filename
+        transcoded_file = '%s%s' % (os.path.splitext(chunk)[0],
+                                    self.output_extension)
+        path = os.path.split(chunk)[0]
+        tmp_file = os.path.join(path, 'tmp')
+        os.rename(chunk, tmp_file)
+        transcode(tmp_file, transcoded_file)
+        os.remove(tmp_file)
+        return transcoded_file
 
     def mapper(self, _, filename):
-        key, chunk = tuple(self._fetch_file(filename).split())
-        transcoded_chunk = self._transcode(chunk)
-        transcoded_filename = self._transfer_transcoded_file(transcoded_chunk)
-        yield key, transcoded_filename
+        key = self._get_key(filename)
+        transcoded_chunk = self._transcode(filename)
+        yield key, transcoded_chunk
 
     def reducer(self, key, values):
-        yield key, '\n'.join([self._fetch_file(f) for f in values])
+        transcoded_chunk = next(values)
+        path = os.path.split(transcoded_chunk)[0]
+        merge_pattern = '%s/*' % path
+        merge(merge_pattern, self.output_file)
+        shutil.rmtree(path, ignore_errors=True)
+        yield key, '\n'.join(values)
 
 
 if __name__ == '__main__':

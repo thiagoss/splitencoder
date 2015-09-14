@@ -52,6 +52,7 @@ def on_pad_added(element, pad, udata):
         queue.get_static_pad('src').link(other_pad)
 
 def merge(input_location, output_file):
+    Gst.init()
     loop = GObject.MainLoop()
 
     pipeline = Gst.Pipeline()

@@ -72,7 +72,14 @@ def on_pad_added(element, pad, udata):
         pad.link(queue.get_static_pad('sink'))
         queue.get_static_pad('src').link(other_pad)
 
-def transcode(input_file, output_file, profile):
+def transcode(input_file, output_file, profile=None):
+    Gst.init()
+    if not Gst.uri_is_valid (input_file):
+        input_file = Gst.filename_to_uri (input_file)
+    ensure_directory(os.path.dirname(output_file))
+    if profile is None:
+        profile=create_encoding_profile()
+
     loop = GObject.MainLoop()
 
     pipeline = Gst.Pipeline()
@@ -111,10 +118,4 @@ if __name__ == '__main__':
     output_file = sys.argv[2]
     #TODO validate args
 
-    if not Gst.uri_is_valid (input_file):
-        input_file = Gst.filename_to_uri (input_file)
-    ensure_directory(os.path.dirname(output_file))
-
-    profile = create_encoding_profile()
-
-    transcode(input_file, output_file, profile)
+    transcode(input_file, output_file)
