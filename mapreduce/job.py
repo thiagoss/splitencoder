@@ -1,7 +1,6 @@
 import os
 import shutil
 import sys
-import uuid
 
 from mrjob.job import MRJob
 from splitencoder.transcoder import transcode
