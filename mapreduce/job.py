@@ -27,8 +27,7 @@ class SplitencoderJob(MRJob):
     def _transcode(self, chunk):
         transcoded_file = '%s%s' % (os.path.splitext(chunk)[0],
                                     self.output_extension)
-        path = os.path.split(chunk)[0]
-        tmp_file = os.path.join(path, 'tmp')
+        tmp_file = '%s.tmp' % chunk
         os.rename(chunk, tmp_file)
         transcode(tmp_file, transcoded_file)
         os.remove(tmp_file)
