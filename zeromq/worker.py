@@ -16,21 +16,28 @@ import zmq
 
 from splitencoder.transcoder import transcode
 
+tasks_host = 'localhost'
+tasks_port = 5557
+sink_host = 'localhost'
+sink_port = 5558
+segment_base_uri = 'http://localhost:8008/'
+
 context = zmq.Context()
 
 # Socket to receive messages on
 receiver = context.socket(zmq.PULL)
-receiver.connect("tcp://localhost:5557")
+receiver.connect("tcp://%s:%d" % (tasks_host, tasks_port))
 
 # Socket to send messages to
 sender = context.socket(zmq.PUSH)
-sender.connect("tcp://localhost:5558")
+sender.connect("tcp://%s:%d" % (sink_host, sink_port))
 
 # Process tasks forever
 while True:
     s = receiver.recv()
     print 'Transcoding: ', s
 
-    transcode('http://localhost:8000/%s' % s,
-              'transcoded/%s' % s)
-    sender.send_string(s)
+    file_name = s[s.rfind('/')+1:]
+
+    transcode(s, 'transcoded/%s' % file_name)
+    sender.send_string(segment_base_uri + file_name)

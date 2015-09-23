@@ -27,9 +27,13 @@ def make_sure_path_exists(path):
         elif not os.path.isdir(path):
             raise
 
-inputfile = sys.argv[1]
+inputuri = sys.argv[1]
 outputfile = sys.argv[2]
 outputdir = 'split'
+sender_port = 5557
+sink_host = 'localhost'
+sink_port = 5558
+segments_base_uri = 'http://localhost:8000/'
 
 make_sure_path_exists(outputdir)
 
@@ -37,11 +41,11 @@ context = zmq.Context()
 
 # Socket to send messages on
 sender = context.socket(zmq.PUSH)
-sender.bind("tcp://*:5557")
+sender.bind("tcp://*:%d" % sender_port)
 
 # Socket with direct access to the sink: used to syncronize start of batch
 sink = context.socket(zmq.PUSH)
-sink.connect("tcp://localhost:5558")
+sink.connect("tcp://%s:%d" % (sink_host, sink_port))
 
 split(inputuri, outputdir)
 
@@ -54,7 +58,7 @@ print 'Sending %d segments for transcoding' % len(onlyfiles)
 
 for f in onlyfiles:
     print f
-    sender.send_string(f)
+    sender.send_string(segments_base_uri + f)
 
 # Give 0MQ time to deliver
 time.sleep(5)

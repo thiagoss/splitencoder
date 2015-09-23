@@ -14,6 +14,8 @@ import processing
 
 from splitencoder.merger import merge
 
+port = 5558
+
 class DownloadTask(object):
     def __init__(self, name, url):
         self.name = name
@@ -47,7 +49,7 @@ context = zmq.Context()
 
 # Socket to receive messages on
 receiver = context.socket(zmq.PULL)
-receiver.bind("tcp://*:5558")
+receiver.bind("tcp://*:%d" % port)
 
 # Start our clock now
 tstart = time.time()
@@ -79,8 +81,9 @@ def print_status():
 
 while len(files) < number:
     s = receiver.recv()
-    files.append(s)
-    p = DownloadTask('downloaded/' + s, 'http://localhost:8008/%s' % s)
+    file_name = s[s.rfind('/')+1:]
+    files.append(file_name)
+    p = DownloadTask('downloaded/' + file_name, s)
     p.start()
     processes.append(p)
     update_downloads()
@@ -93,5 +96,5 @@ while len(local_files) < number:
     time.sleep(1)
 
 print 'Starting merge'
-merge('downloaded/*', 'output.mkv')
+merge('downloaded/*', outputfile)
 print 'Finished:', outputfile
