@@ -10,11 +10,14 @@ import sys
 import time
 import zmq
 import urllib
+import argparse
 import processing
 
 from splitencoder.merger import merge
 
-port = 5558
+parser = argparse.ArgumentParser('Merges')
+parser.add_argument('--port', type=int, default=5558)
+args = parser.parse_args()
 
 class DownloadTask(object):
     def __init__(self, name, url):
@@ -49,7 +52,7 @@ context = zmq.Context()
 
 # Socket to receive messages on
 receiver = context.socket(zmq.PULL)
-receiver.bind("tcp://*:%d" % port)
+receiver.bind("tcp://*:%d" % args.port)
 
 # Start our clock now
 tstart = time.time()

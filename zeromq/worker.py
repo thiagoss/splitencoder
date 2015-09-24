@@ -12,25 +12,29 @@
 
 import sys
 import time
+import argparse
 import zmq
 
 from splitencoder.transcoder import transcode
 
-tasks_host = 'localhost'
-tasks_port = 5557
-sink_host = 'localhost'
-sink_port = 5558
-segment_base_uri = 'http://localhost:8008/'
+parser = argparse.ArgumentParser('Transcodes files')
+parser.add_argument('--tasks-host', type=str, default='localhost')
+parser.add_argument('--tasks-port', type=int, default=5557)
+parser.add_argument('--sink-host', type=str, default='localhost')
+parser.add_argument('--sink-port', type=int, default=5558)
+parser.add_argument('--base-uri', type=str, default='http://localhost:8000/')
+
+args = parser.parse_args()
 
 context = zmq.Context()
 
 # Socket to receive messages on
 receiver = context.socket(zmq.PULL)
-receiver.connect("tcp://%s:%d" % (tasks_host, tasks_port))
+receiver.connect("tcp://%s:%d" % (args.tasks_host, args.tasks_port))
 
 # Socket to send messages to
 sender = context.socket(zmq.PUSH)
-sender.connect("tcp://%s:%d" % (sink_host, sink_port))
+sender.connect("tcp://%s:%d" % (args.sink_host, args.sink_port))
 
 # Process tasks forever
 while True:
@@ -40,4 +44,4 @@ while True:
     file_name = s[s.rfind('/')+1:]
 
     transcode(s, 'transcoded/%s' % file_name)
-    sender.send_string(segment_base_uri + file_name)
+    sender.send_string(args.base_uri + file_name)
