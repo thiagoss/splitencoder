@@ -14,6 +14,7 @@ import sys
 import time
 import argparse
 import zmq
+import processing
 
 from splitencoder.transcoder import transcode
 
