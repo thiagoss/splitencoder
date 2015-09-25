@@ -10,8 +10,9 @@
 #
 # Based on sample by: Lev Givon <lev(at)columbia(dot)edu>
 
-import sys
+from datetime import datetime
 import time
+import sys
 import argparse
 import zmq
 import processing
@@ -49,6 +50,8 @@ while True:
 
     file_name = s[s.rfind('/')+1:]
 
+    start = time.time()
+    print 'Starting transcoding of %s' % s
     if args.process:
         p = processing.Process(target=do_transcode,
                                args=[s, 'transcoded/%s' % file_name])
@@ -56,4 +59,6 @@ while True:
         p.join()
     else:
         transcode(s, 'transcoded/%s' % file_name)
+    stop = time.time()
+    print 'Finished:', s, stop - start
     sender.send_string(args.base_uri + file_name)

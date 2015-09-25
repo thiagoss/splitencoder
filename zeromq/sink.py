@@ -7,6 +7,7 @@
 # Author: Lev Givon <lev(at)columbia(dot)edu>
 
 import sys
+from datetime import datetime
 import time
 import zmq
 import urllib
@@ -28,6 +29,7 @@ class DownloadTask(object):
         self.finished = True
 
     def start(self):
+        self.start = time.time()
         self.finished = False
         self.process.start()
 
@@ -46,6 +48,7 @@ class DownloadTask(object):
             return False
         print self.queue.get()
         self.finished = True
+        print 'Download finished: %s %f' % (self.name, time.time() - self.start)
         return True
 
 context = zmq.Context()
@@ -54,13 +57,14 @@ context = zmq.Context()
 receiver = context.socket(zmq.PULL)
 receiver.bind("tcp://*:%d" % args.port)
 
-# Start our clock now
-tstart = time.time()
 
 start_msg = receiver.recv()
 start_msg = start_msg.split(';')
 outputfile = start_msg[0]
 number = int(start_msg[1])
+
+# Start our clock now
+tstart = time.time()
 
 print 'Creating output file \'%s\' (%d segments)' % (outputfile, number)
 
@@ -86,6 +90,7 @@ while len(files) < number:
     s = receiver.recv()
     file_name = s[s.rfind('/')+1:]
     files.append(file_name)
+    print 'Downloading:', s
     p = DownloadTask('downloaded/' + file_name, s)
     p.start()
     processes.append(p)
@@ -99,5 +104,8 @@ while len(local_files) < number:
     time.sleep(1)
 
 print 'Starting merge'
+merge_start = time.time()
 merge('downloaded/*', outputfile)
-print 'Finished:', outputfile
+print 'Merge finished:', time.time() - merge_start
+print 'Finished: %s %s (%f)' % (outputfile, datetime.now().isoformat(), time.time() - tstart)
+

@@ -7,6 +7,7 @@
 #
 # Based on sample by: Lev Givon <lev(at)columbia(dot)edu>
 
+from datetime import datetime
 import time
 import sys
 import os
@@ -43,6 +44,8 @@ make_sure_path_exists(outputdir)
 
 context = zmq.Context()
 
+print 'Spliter starting... (time: %s)' % str(datetime.now().isoformat())
+
 # Socket to send messages on
 sender = context.socket(zmq.PUSH)
 sender.bind("tcp://*:%d" % args.port)
@@ -51,7 +54,11 @@ sender.bind("tcp://*:%d" % args.port)
 sink = context.socket(zmq.PUSH)
 sink.connect("tcp://%s:%d" % (args.sink_host, args.sink_port))
 
+split_start = time.time()
 split(args.input_uri, outputdir)
+split_end = time.time()
+
+print 'Splitting file took %ss' % str(split_end - split_start)
 
 onlyfiles = [ f for f in listdir(outputdir) if isfile(join(outputdir,f)) ]
 onlyfiles.sort()
